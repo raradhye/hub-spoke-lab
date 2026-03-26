@@ -9,3 +9,13 @@ variable "resource_group_name" {
   type        = string
   default     = "rg-hub-spoke-lab"
 }
+variable "admin_username" {
+  description = "VM admin username"
+  type        = string
+  default     = "adminuser"
+}
+variable "admin_password" {
+  description = "VM admin password"
+  type        = string
+  sensitive   = true
+}
