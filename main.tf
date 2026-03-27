@@ -27,37 +27,37 @@ resource "azurerm_subnet" "hub_shared" {
   virtual_network_name = azurerm_virtual_network.hub.name
   address_prefixes     = ["10.1.4.0/24"]
 }
-# Spoke Dev VNet
-resource "azurerm_virtual_network" "spoke_dev" {
-  name                = "vnet-spoke-dev"
+# Spoke VNet
+resource "azurerm_virtual_network" "spoke_vnet" {
+  name                = "vnet-spoke-${var.environment_name}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  address_space       = ["10.2.0.0/16"]
+  address_space       = [var.spoke_vnet_address]
 }
 # Spoke App Subnet
 resource "azurerm_subnet" "spoke_app" {
   name                 = "snet-app"
   resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.spoke_dev.name
-  address_prefixes     = ["10.2.1.0/24"]
+  virtual_network_name = azurerm_virtual_network.spoke_vnet.name
+  address_prefixes     = [var.spoke_vnet_subnet]
 }
 # peer hub to spoke
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
-  name                      = "peer-hub-to-spoke-dev"
+  name                      = "peer-hub-to-spoke-${var.environment_name}"
   resource_group_name       = azurerm_resource_group.main.name
   virtual_network_name      = azurerm_virtual_network.hub.name
-  remote_virtual_network_id = azurerm_virtual_network.spoke_dev.id
+  remote_virtual_network_id = azurerm_virtual_network.spoke_vnet.id
 }
 # peer spoke to hub
 resource "azurerm_virtual_network_peering" "spoke_to_hub" {
-  name                      = "peer-spoke-dev-to-hub"
+  name                      = "peer-spoke-${var.environment_name}-to-hub"
   resource_group_name       = azurerm_resource_group.main.name
-  virtual_network_name      = azurerm_virtual_network.spoke_dev.name
+  virtual_network_name      = azurerm_virtual_network.spoke_vnet.name
   remote_virtual_network_id = azurerm_virtual_network.hub.id
 }
 # NSG for spoke subnet
-resource "azurerm_network_security_group" "spoke_dev" {
-  name                = "nsg-spoke-dev"
+resource "azurerm_network_security_group" "spoke_nsg" {
+  name                = "nsg-spoke-${var.environment_name}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
@@ -76,7 +76,7 @@ resource "azurerm_network_security_group" "spoke_dev" {
 # Attach NSG to Spoke subnet
 resource "azurerm_subnet_network_security_group_association" "spoke_app" {
   subnet_id                 = azurerm_subnet.spoke_app.id
-  network_security_group_id = azurerm_network_security_group.spoke_dev.id
+  network_security_group_id = azurerm_network_security_group.spoke_nsg.id
 }
 # Network interface for Hub VM
 resource "azurerm_network_interface" "hub_vm" {
@@ -102,7 +102,7 @@ resource "azurerm_linux_virtual_machine" "hub_vm" {
   vtpm_enabled                    = true
   secure_boot_enabled             = true
 
-  identity { # <- add it here
+  identity {
     type = "SystemAssigned"
   }
   network_interface_ids = [
@@ -124,7 +124,7 @@ resource "azurerm_linux_virtual_machine" "hub_vm" {
 }
 # Network interface for Spoke VM
 resource "azurerm_network_interface" "spoke_vm" {
-  name                = "nic-vm-spoke-test"
+  name                = "nic-vm-spoke-${var.environment_name}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
@@ -134,9 +134,9 @@ resource "azurerm_network_interface" "spoke_vm" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-# Hub VM
+# Spoke VM
 resource "azurerm_linux_virtual_machine" "spoke_vm" {
-  name                            = "vm-spoke-test"
+  name                            = "vm-spoke-${var.environment_name}"
   resource_group_name             = azurerm_resource_group.main.name
   location                        = azurerm_resource_group.main.location
   size                            = "Standard_B1s"
@@ -146,7 +146,7 @@ resource "azurerm_linux_virtual_machine" "spoke_vm" {
   vtpm_enabled                    = true
   secure_boot_enabled             = true
 
-  identity { # <- add it here
+  identity {
     type = "SystemAssigned"
   }
   network_interface_ids = [

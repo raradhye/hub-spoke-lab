@@ -10,7 +10,6 @@ terraform {
     resource_group_name  = "rg-terraform-state-dev"
     storage_account_name = "stult8unwm3w"
     container_name       = "tfstate"
-    key                  = "hub-spoke-lab.tfstate"
   }
 }
 

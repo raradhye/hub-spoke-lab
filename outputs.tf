@@ -4,7 +4,7 @@ output "hub_vnet_id" {
 }
 output "spoke_vnet_id" {
   description = "Spoke VNet Id"
-  value       = azurerm_virtual_network.spoke_dev.id
+  value       = azurerm_virtual_network.spoke_vnet.id
 }
 output "hub_vm_private_ip" {
   description = "Hub VM Private IP"
