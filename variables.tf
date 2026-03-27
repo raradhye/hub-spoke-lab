@@ -19,3 +19,15 @@ variable "admin_password" {
   type        = string
   sensitive   = true
 }
+variable "environment_name" {
+  description = "environment name (dev or prod)"
+  type        = string
+}
+variable "spoke_vnet_address" {
+  description = "Spoke VNet address space"
+  type        = string
+}
+variable "spoke_vnet_subnet" {
+  description = "Spoke app subnet address space"
+  type        = string
+}

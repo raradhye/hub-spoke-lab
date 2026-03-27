@@ -1,5 +1,9 @@
-terraform.tfvars
+# Terraform files
 .terraform/
 *.tfstate
 *.tfstate.backup
 *.tfplan
+
+# Environment tfvars contains password so never commit
+environments/dev.tfvars
+environments/prod.tfvars
