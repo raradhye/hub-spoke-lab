@@ -3,7 +3,6 @@ variable "location" {
   type        = string
   default     = "westus"
 }
-
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
@@ -13,11 +12,6 @@ variable "admin_username" {
   description = "VM admin username"
   type        = string
   default     = "adminuser"
-}
-variable "admin_password" {
-  description = "VM admin password"
-  type        = string
-  sensitive   = true
 }
 variable "environment_name" {
   description = "environment name (dev or prod)"

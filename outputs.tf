@@ -14,3 +14,7 @@ output "spoke_vm_private_ip" {
   description = "Spoke VM Private IP"
   value       = azurerm_linux_virtual_machine.spoke_vm.private_ip_address
 }
+output "key_vault_id" {
+  description = "Key vault resource ID"
+  value       = azurerm_key_vault.main.id
+}
