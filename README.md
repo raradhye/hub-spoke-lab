@@ -2,19 +2,20 @@
 
 ## Overview
 Hub-spoke network topology on Azure built with Terraform. This project demonstrates 
-enterprise-grade Azure networking architecture with secure VM connectivity and 
-remote state management.
+enterprise-grade Azure networking architecture with secure VM connectivity, 
+remote state management, multi-environment support and Key Vault secret management.
 
 ### Components
 - **Hub VNet** (10.1.0.0/16) — central network with shared services
   - AzureBastionSubnet (10.1.1.0/26) — secure VM access
   - snet-shared (10.1.4.0/24) — shared services subnet
-- **Spoke VNet** (10.2.0.0/16) — isolated workload network
-  - snet-app (10.2.1.0/24) — application subnet
+- **Spoke VNet** (environment specific) — isolated workload network
+  - snet-app — application subnet
 - **VNet Peering** — private connectivity between hub and spoke
 - **NSG** — restricts spoke inbound traffic to hub range only
 - **Azure Bastion** — secure browser-based SSH/RDP without public IPs
-- **Remote State** — Terraform state stored in Azure Blob Storage
+- **Azure Key Vault** — VM admin password stored and retrieved securely
+- **Remote State** — Terraform state stored in Azure Blob Storage per environment
 
 ## Prerequisites
 - Azure CLI installed and logged in (`az login`)
@@ -24,47 +25,94 @@ remote state management.
 ## Project Structure
 ```
 hub-spoke-lab/
-├── main.tf           # All resources
-├── providers.tf      # Azure provider and remote backend
-├── variables.tf      # Input variables
-├── outputs.tf        # Output values
-└── terraform.tfvars  # Variable values (not committed to Git)
+├── main.tf                      # All resources
+├── providers.tf                 # Azure provider and remote backend
+├── variables.tf                 # Input variables
+├── outputs.tf                   # Output values
+├── environments/
+│   ├── dev.tfvars               # Dev environment values
+│   └── prod.tfvars              # Prod environment values
+└── .gitignore                   # Excludes secrets and state files
 ```
+
+## Security Design
+- No public IPs on any VM — all access via Azure Bastion only
+- VM admin password stored in Azure Key Vault — never in any file
+- NSG restricts spoke inbound to hub range (10.1.0.0/16) only
+- Terraform state stored securely in Azure Blob Storage
+- Sensitive variables never committed to Git
+- azurerm_client_config data source used for tenant and object IDs
+- No hardcoded credentials anywhere in code
 
 ## How to Deploy
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/raradhye/hub-spoke-lab.git
+git clone https://github.com/YOUR_USERNAME/hub-spoke-lab.git
 cd hub-spoke-lab
 ```
 
-### 2. Create terraform.tfvars
-```bash
-cat > terraform.tfvars << EOF
+### 2. Create environment tfvars file
+Create `environments/dev.tfvars` — this file is gitignored:
+```hcl
 location            = "westus"
 resource_group_name = "rg-hub-spoke-lab"
 admin_username      = "azureuser"
-admin_password      = "YOUR_PASSWORD"
-EOF
+environment_name    = "dev"
+spoke_vnet_address  = "10.2.0.0/16"
+spoke_vnet_subnet   = "10.2.1.0/24"
 ```
 
-### 3. Initialise and deploy
+### 3. Initialise Terraform with environment state
 ```bash
-terraform init
-terraform plan
-terraform apply
+terraform init -backend-config="key=hub-spoke-dev.tfstate"
 ```
 
-### 4. Verify connectivity
+### 4. Plan and deploy
+```bash
+terraform plan -var-file="environments/dev.tfvars"
+terraform apply -var-file="environments/dev.tfvars"
+```
+
+### 5. Seed Key Vault secret
+After first apply — manually seed the VM password into Key Vault:
+```bash
+az keyvault secret set \
+  --vault-name "kv-hub-spoke-lab" \
+  --name "vm-admin-password" \
+  --value "YOUR_PASSWORD"
+```
+
+### 6. Apply again to use Key Vault secret
+```bash
+terraform apply -var-file="environments/dev.tfvars"
+```
+
+### 7. Verify connectivity
 ```bash
 # Note the output IPs
 terraform output
 
 # Connect to hub VM via Bastion in Azure portal
 # Then ping spoke VM private IP
-ping 10.2.1.4
+ping 10.2.x.x
 ```
+
+## Multi-Environment Support
+Same codebase deploys to multiple environments using different tfvars files
+and separate state files:
+```bash
+# Dev environment
+terraform init -backend-config="key=hub-spoke-dev.tfstate"
+terraform apply -var-file="environments/dev.tfvars"
+
+# Prod environment
+terraform init -backend-config="key=hub-spoke-prod.tfstate"
+terraform apply -var-file="environments/prod.tfvars"
+```
+
+Each environment has its own isolated state file in Azure Blob Storage —
+a failed dev deployment can never impact production.
 
 ## Outputs
 | Output | Description |
@@ -73,20 +121,17 @@ ping 10.2.1.4
 | `spoke_vnet_id` | Spoke VNet resource ID |
 | `hub_vm_private_ip` | Hub VM private IP address |
 | `spoke_vm_private_ip` | Spoke VM private IP address |
-
-## Security Considerations
-- No public IPs on any VM
-- All VM access via Azure Bastion only
-- NSG restricts spoke inbound to hub range (10.1.0.0/16) only
-- Terraform state stored securely in Azure Blob Storage
-- Sensitive variables never committed to Git
+| `key_vault_id` | Key Vault resource ID |
 
 ## What's Next
-- [ ] Azure Key Vault integration for secret management
+- [ ] PowerShell secret seeding script with password prompt
 - [ ] Azure Firewall for centralised traffic inspection
-- [ ] Route tables to force spoke traffic through hub firewall
-- [ ] Additional spoke environments (dev/prod)
+- [ ] Route tables forcing spoke traffic through hub firewall
+- [ ] VPN Gateway for on-premises connectivity simulation
+- [ ] Refactor into reusable Terraform modules
 - [ ] CI/CD pipeline with GitHub Actions
 
 ## Author
 Rajesh Aradhye
+[LinkedIn](https://www.linkedin.com/in/raradhye) | 
+[GitHub](https://github.com/raradhye/)
