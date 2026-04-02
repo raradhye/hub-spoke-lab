@@ -1,3 +1,6 @@
+# Get current configuration such as tenant_id, subscription_id & object_id
+data "azurerm_client_config" "current" {}
+
 # Create a resource group
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
@@ -90,6 +93,41 @@ resource "azurerm_network_interface" "hub_vm" {
     private_ip_address_allocation = "Dynamic"
   }
 }
+
+# Key Vault
+resource "azurerm_key_vault" "main" {
+  name                       = "kv-hub-spoke-lab"
+  location                   = azurerm_resource_group.main.location
+  resource_group_name        = azurerm_resource_group.main.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+  sku_name                   = "standard"
+}
+
+# Key vault access policy for admin user
+resource "azurerm_key_vault_access_policy" "admin" {
+  key_vault_id = azurerm_key_vault.main.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Purge"
+  ]
+}
+
+data "azurerm_key_vault_secret" "admin_password" {
+  name         = "vm-admin-password"
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on = [
+    azurerm_key_vault_access_policy.admin
+  ]
+}
+
 # Hub VM
 resource "azurerm_linux_virtual_machine" "hub_vm" {
   name                            = "vm-hub-test"
@@ -97,7 +135,7 @@ resource "azurerm_linux_virtual_machine" "hub_vm" {
   location                        = azurerm_resource_group.main.location
   size                            = "Standard_B1s"
   admin_username                  = var.admin_username
-  admin_password                  = var.admin_password
+  admin_password                  = data.azurerm_key_vault_secret.admin_password.value
   disable_password_authentication = false
   vtpm_enabled                    = true
   secure_boot_enabled             = true
@@ -141,7 +179,7 @@ resource "azurerm_linux_virtual_machine" "spoke_vm" {
   location                        = azurerm_resource_group.main.location
   size                            = "Standard_B1s"
   admin_username                  = var.admin_username
-  admin_password                  = var.admin_password
+  admin_password                  = data.azurerm_key_vault_secret.admin_password.value
   disable_password_authentication = false
   vtpm_enabled                    = true
   secure_boot_enabled             = true
@@ -166,3 +204,5 @@ resource "azurerm_linux_virtual_machine" "spoke_vm" {
   }
   boot_diagnostics {}
 }
+
+
