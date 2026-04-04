@@ -1,9 +1,10 @@
 # Azure Hub-Spoke Network Infrastructure
 
 ## Overview
-Hub-spoke network topology on Azure built with Terraform. This project demonstrates 
-enterprise-grade Azure networking architecture with secure VM connectivity, 
-remote state management, multi-environment support and Key Vault secret management.
+Hub-spoke network topology on Azure built with Terraform using a modular 
+architecture. This project demonstrates enterprise-grade Azure networking 
+with secure VM connectivity, Key Vault secret management, remote state 
+and multi-environment support.
 
 ### Components
 - **Hub VNet** (10.1.0.0/16) — central network with shared services
@@ -25,24 +26,55 @@ remote state management, multi-environment support and Key Vault secret manageme
 ## Project Structure
 ```
 hub-spoke-lab/
-├── main.tf                      # All resources
+├── main.tf                      # Root — calls all modules
 ├── providers.tf                 # Azure provider and remote backend
 ├── variables.tf                 # Input variables
 ├── outputs.tf                   # Output values
 ├── environments/
 │   ├── dev.tfvars               # Dev environment values
 │   └── prod.tfvars              # Prod environment values
-└── .gitignore                   # Excludes secrets and state files
+├── .gitignore                   # Excludes secrets and state files
+└── modules/
+    ├── networking/              # VNets, subnets, peering, NSG
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    ├── keyvault/                # Key Vault and access policy
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    └── vm/                      # NICs and VMs
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf
 ```
+
+## How Modules Work
+Values flow between modules through outputs and variables:
+```
+dev.tfvars
+    ↓ spoke_vnet_address, spoke_vnet_subnet
+networking module → creates VNets and subnets
+    ↓ hub_shared_subnet_id, spoke_app_subnet_id
+vm module → places NICs in correct subnets
+
+keyvault module → creates Key Vault
+    ↓ key_vault_id
+vm module → reads password directly from Key Vault
+```
+
+No secrets are passed between modules — the VM module reads the 
+password directly from Key Vault using the vault ID only.
 
 ## Security Design
 - No public IPs on any VM — all access via Azure Bastion only
 - VM admin password stored in Azure Key Vault — never in any file
+- VM module reads password directly from Key Vault — not passed between modules
 - NSG restricts spoke inbound to hub range (10.1.0.0/16) only
-- Terraform state stored securely in Azure Blob Storage
-- Sensitive variables never committed to Git
+- Terraform state stored securely in Azure Blob Storage with state locking
 - azurerm_client_config data source used for tenant and object IDs
 - No hardcoded credentials anywhere in code
+- Sensitive outputs marked sensitive = true — never shown in logs
 
 ## How to Deploy
 
@@ -124,14 +156,16 @@ a failed dev deployment can never impact production.
 | `key_vault_id` | Key Vault resource ID |
 
 ## What's Next
-- [ ] PowerShell secret seeding script with password prompt
+- [ ] PowerShell runner script for environment switching
+- [ ] Azure Monitor + Log Analytics alerts
 - [ ] Azure Firewall for centralised traffic inspection
 - [ ] Route tables forcing spoke traffic through hub firewall
 - [ ] VPN Gateway for on-premises connectivity simulation
-- [ ] Refactor into reusable Terraform modules
+- [ ] AKS / Kubernetes workloads
+- [ ] User Assigned Managed Identity for VMs
 - [ ] CI/CD pipeline with GitHub Actions
 
 ## Author
 Rajesh Aradhye
-[LinkedIn](https://www.linkedin.com/in/raradhye) | 
+[LinkedIn](https://www.linkedin.com/in/raradhye) |
 [GitHub](https://github.com/raradhye/)
