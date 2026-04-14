@@ -25,46 +25,56 @@ multi-environment support and full observability via Azure Monitor.
 - Git
 
 ## Project Structure
+
+```
 hub-spoke-lab/
-├── main.tf                      # Root — calls all modules
-├── providers.tf                 # Azure provider and remote backend
-├── variables.tf                 # Input variables
-├── outputs.tf                   # Output values
+├── main.tf                       # Root — calls all modules
+├── providers.tf                  # Azure provider and remote backend
+├── variables.tf                  # Input variables
+├── outputs.tf                    # Output values
 ├── environments/
-│   ├── dev.tfvars               # Dev environment values
-│   └── prod.tfvars              # Prod environment values
+│   ├── dev.tfvars                # Dev environment values
+│   └── prod.tfvars               # Prod environment values
 ├── dashboards/
-│   └── workbook-vm-health.json  # VM Health workbook definition
-├── .gitignore                   # Excludes secrets and state files
+│   └── workbook-vm-health.json   # VM Health workbook definition
+├── .gitignore                    # Excludes secrets and state files
 └── modules/
-├── networking/              # VNets, subnets, peering, NSG
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-├── keyvault/                # Key Vault and access policy
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-├── vm/                      # NICs, VMs and Monitor Agent
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-└── monitoring/              # Log Analytics, DCR, alerts, workbook
-├── main.tf
-├── variables.tf
-└── outputs.tf
+    ├── networking/               # VNets, subnets, peering, NSG
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    ├── keyvault/                 # Key Vault and access policy
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    ├── vm/                       # NICs, VMs and Monitor Agent
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    └── monitoring/               # Log Analytics, DCR, alerts, workbook
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf
+```
+
 ## How Modules Work
+
 Values flow between modules through outputs and variables:
+
+```
 dev.tfvars
-↓ spoke_vnet_address, spoke_vnet_subnet
+    ↓ spoke_vnet_address, spoke_vnet_subnet
 networking module → creates VNets and subnets
-↓ hub_shared_subnet_id, spoke_app_subnet_id
+    ↓ hub_shared_subnet_id, spoke_app_subnet_id
 vm module → places NICs in correct subnets
-↓ hub_vm_id, spoke_vm_id
+    ↓ hub_vm_id, spoke_vm_id
 monitoring module → associates DCR with VMs
+
 keyvault module → creates Key Vault
-↓ key_vault_id
+    ↓ key_vault_id
 vm module → reads password directly from Key Vault
+```
+
 No secrets are passed between modules — the VM module reads the
 password directly from Key Vault using the vault ID only.
 
@@ -173,6 +183,7 @@ az monitor log-analytics query \
 ```
 
 ## Multi-Environment Support
+
 Same codebase deploys to multiple environments using different
 tfvars files and separate state files:
 
