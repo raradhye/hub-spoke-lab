@@ -8,21 +8,16 @@ variable "resource_group_name" {
   type        = string
   default     = "rg-hub-spoke-lab"
 }
-variable "admin_username" {
-  description = "VM admin username"
-  type        = string
-  default     = "adminuser"
-}
 variable "environment_name" {
   description = "environment name (dev or prod)"
   type        = string
 }
-variable "spoke_vnet_address" {
-  description = "Spoke VNet address space"
+variable "hub_vm_id" {
+  description = "Hub VM Resource ID"
   type        = string
 }
-variable "spoke_vnet_subnet" {
-  description = "Spoke app subnet address space"
+variable "spoke_vm_id" {
+  description = "Spoke VM Resource ID"
   type        = string
 }
 variable "alert_email" {

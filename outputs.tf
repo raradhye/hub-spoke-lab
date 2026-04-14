@@ -18,3 +18,11 @@ output "key_vault_id" {
   description = "Key vault resource ID"
   value       = module.keyvault.key_vault_id
 }
+output "log_analytics_workspace_id" {
+  description = "Log Analytics Workspce ID"
+  value       = module.monitoring.workspace_id
+}
+output "log_analytics_resource_id" {
+  description = "Log Analytics Resource ID"
+  value       = module.monitoring.resource_id
+}

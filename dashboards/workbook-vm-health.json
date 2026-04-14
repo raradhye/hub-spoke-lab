@@ -1,0 +1,88 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+        {
+            "type": 1,
+            "content": {
+                "json": "## VM Health Dashboard\r\nMonitoring hub and spoke VMs — heartbeat, CPU, memory and system load."
+            },
+            "name": "text - 0"
+        },
+        {
+            "type": 3,
+            "content": {
+                "version": "KqlItem/1.0",
+                "query": "Heartbeat\r\n| summarize LastHeartbeat = max(TimeGenerated) by Computer\r\n| extend Status = iff(LastHeartbeat > ago(5m), \"Healthy\", \"Down\")\r\n| project Computer, Status, LastHeartbeat",
+                "size": 0,
+                "timeContext": {
+                    "durationMs": 1800000
+                },
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                    "/subscriptions/d5453260-ba13-475a-b686-0104a9566180/resourceGroups/rg-hub-spoke-lab/providers/Microsoft.OperationalInsights/workspaces/law-hub-spoke-dev"
+                ],
+                "visualization": "table"
+            },
+            "name": "VM Heartbeat Status"
+        },
+        {
+            "type": 3,
+            "content": {
+                "version": "KqlItem/1.0",
+                "query": "Perf\r\n| where TimeGenerated > ago(4h)\r\n| where ObjectName == \"Processor\"\r\n| where CounterName == \"% Processor Time\"\r\n| summarize AvgCPU = avg(CounterValue) by Computer, bin(TimeGenerated, 5m)\r\n| render timechart",
+                "size": 0,
+                "timeContext": {
+                    "durationMs": 14400000
+                },
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                    "/subscriptions/d5453260-ba13-475a-b686-0104a9566180/resourceGroups/rg-hub-spoke-lab/providers/Microsoft.OperationalInsights/workspaces/law-hub-spoke-dev"
+                ],
+                "visualization": "linechart"
+            },
+            "name": "CPU Usage — Last 1 Hour"
+        },
+        {
+            "type": 3,
+            "content": {
+                "version": "KqlItem/1.0",
+                "query": "Perf\r\n| where TimeGenerated > ago(2h)\r\n| where ObjectName == \"Memory\"\r\n| where CounterName == \"% Available Memory\"\r\n| summarize AvgMem = avg(CounterValue) by Computer, bin(TimeGenerated, 5m)\r\n| render timechart",
+                "size": 0,
+                "timeContext": {
+                    "durationMs": 14400000
+                },
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                    "/subscriptions/d5453260-ba13-475a-b686-0104a9566180/resourceGroups/rg-hub-spoke-lab/providers/Microsoft.OperationalInsights/workspaces/law-hub-spoke-dev"
+                ],
+                "visualization": "linechart"
+            },
+            "name": "Available Memory — Last 1 Hour"
+        },
+        {
+            "type": 3,
+            "content": {
+                "version": "KqlItem/1.0",
+                "query": "Perf\r\n| where TimeGenerated > ago(2h)\r\n| where ObjectName == \"System\"\r\n| where CounterName == \"Load1\"\r\n| summarize AvgLoad = avg(CounterValue) by Computer, bin(TimeGenerated, 5m)\r\n| render timechart",
+                "size": 0,
+                "timeContext": {
+                    "durationMs": 14400000
+                },
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                    "/subscriptions/d5453260-ba13-475a-b686-0104a9566180/resourceGroups/rg-hub-spoke-lab/providers/Microsoft.OperationalInsights/workspaces/law-hub-spoke-dev"
+                ],
+                "visualization": "linechart"
+            },
+            "name": "System Load — Last 1 Hour"
+        }
+    ],
+    "isLocked": false,
+    "fallbackResourceIds": [
+        "Azure Monitor"
+    ]
+}
