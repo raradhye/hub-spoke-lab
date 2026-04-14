@@ -94,3 +94,24 @@ resource "azurerm_linux_virtual_machine" "spoke_vm" {
   boot_diagnostics {}
 }
 
+# Azure Monitor Agent - Hub VM
+
+resource "azurerm_virtual_machine_extension" "hub_vm_ama" {
+  name                       = "AzureMonitorLinuxAgent"
+  virtual_machine_id         = azurerm_linux_virtual_machine.hub_vm.id
+  publisher                  = "Microsoft.Azure.Monitor"
+  type                       = "AzureMonitorLinuxAgent"
+  type_handler_version       = "1.0"
+  auto_upgrade_minor_version = true
+}
+
+# Azure Monotor Agent - Spoke VM
+
+resource "azurerm_virtual_machine_extension" "spoke_vm_ama" {
+  name                       = "AzureMonitorLinuxAgent"
+  virtual_machine_id         = azurerm_linux_virtual_machine.spoke_vm.id
+  publisher                  = "Microsoft.Azure.Monitor"
+  type                       = "AzureMonitorLinuxAgent"
+  type_handler_version       = "1.0"
+  auto_upgrade_minor_version = true
+}

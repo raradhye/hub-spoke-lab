@@ -24,6 +24,17 @@ module "keyvault" {
   location            = azurerm_resource_group.main.location
 }
 
+# Monitoring Module
+module "monitoring" {
+  source              = "./modules/monitoring"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  environment_name    = var.environment_name
+  hub_vm_id           = module.vm.hub_vm_id
+  spoke_vm_id         = module.vm.spoke_vm_id
+  alert_email         = var.alert_email
+}
+
 # VM Module
 module "vm" {
   source              = "./modules/vm"
