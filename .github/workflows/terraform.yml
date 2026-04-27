@@ -31,6 +31,20 @@ jobs:
         with:
           terraform_version: 1.11.4
 
+      # create dev.tfvars file to read
+      - name: Create tfvars file
+        run: |
+          mkdir -p environments
+          cat > environments/dev.tfvars << EOF
+          location            = "westus"
+          resource_group_name = "rg-hub-spoke-lab"
+          environment_name    = "dev"
+          admin_username      = "${{secrets.TF_ADMIN_USERNAME}}"
+          spoke_vnet_address  = "10.2.0.0/16"
+          spoke_vnet_subnet   = "10.2.1.0/24"
+          alert_email         = "${{secrets.TF_ALERT_EMAIL}}"
+          EOF
+
       # connect to remote state
       - name: Terraform Init
         run: |
