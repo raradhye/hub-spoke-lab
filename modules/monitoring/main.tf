@@ -141,9 +141,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "heartbeat" {
 
   criteria {
     query                   = <<-QUERY
-      Heartbeat
-      | summarize LastHeartbeat = max(TimeGenerated) by Computer
-      | where LastHeartbeat < ago(5m)
+Heartbeat
+| summarize LastHeartbeat = max(TimeGenerated) by Computer
+| where LastHeartbeat < ago(5m)
     QUERY
     time_aggregation_method = "Count"
     threshold               = 0
