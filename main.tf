@@ -19,9 +19,11 @@ module "networking" {
 
 # Key Vault Module
 module "keyvault" {
-  source              = "./modules/keyvault"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
+  source                    = "./modules/keyvault"
+  resource_group_name       = azurerm_resource_group.main.name
+  location                  = azurerm_resource_group.main.location
+  key_vault_admin_object_id = var.key_vault_admin_object_id
+  github_actions_object_id  = var.github_actions_object_id
 }
 
 # Monitoring Module

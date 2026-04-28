@@ -43,6 +43,8 @@ jobs:
           spoke_vnet_address  = "10.2.0.0/16"
           spoke_vnet_subnet   = "10.2.1.0/24"
           alert_email         = "${{secrets.TF_ALERT_EMAIL}}"
+          key_vault_admin_object_id = "${{secrets.TF_KV_ADMIN_OBJECT_ID}}"
+          github_actions_object_id = "${{secrets.TF_GITHUB_ACTIONS_OBJECT_ID}}"
           EOF
 
       # connect to remote state

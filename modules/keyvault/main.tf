@@ -1,6 +1,6 @@
 data "azurerm_client_config" "current" {}
 
-# Key Vault
+# Key Vault with RBAC authorization enabled
 resource "azurerm_key_vault" "main" {
   name                       = "kv-hub-spoke-lab"
   location                   = var.location
@@ -9,27 +9,19 @@ resource "azurerm_key_vault" "main" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
   sku_name                   = "standard"
+  enable_rbac_authorization  = true
 }
 
-# Key vault access policy for admin user
-resource "azurerm_key_vault_access_policy" "admin" {
-  key_vault_id = azurerm_key_vault.main.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  secret_permissions = [
-    "Get",
-    "List",
-    "Set",
-    "Delete",
-    "Purge"
-  ]
+# Key Vault Administrator your personal account
+resource "azurerm_role_assignment" "kv_admin" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = var.key_vault_admin_object_id
 }
 
-data "azurerm_key_vault_secret" "admin_password" {
-  name         = "vm-admin-password"
-  key_vault_id = azurerm_key_vault.main.id
-  depends_on = [
-    azurerm_key_vault_access_policy.admin
-  ]
+# Key Vault Secrets user - Github Action Service Principal
+resource "azurerm_role_assignment" "kv_pipeline" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = var.github_actions_object_id
 }

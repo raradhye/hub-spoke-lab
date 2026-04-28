@@ -8,3 +8,11 @@ variable "resource_group_name" {
   type        = string
   default     = "rg-hub-spoke-lab"
 }
+variable "key_vault_admin_object_id" {
+  description = "Object ID of admin user for Key Vault Administrator role"
+  type        = string
+}
+variable "github_actions_object_id" {
+  description = "Object ID of GitHub Actions Service Principal for Key Vault Secrets User role"
+  type        = string
+}

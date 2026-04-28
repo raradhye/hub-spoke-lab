@@ -29,3 +29,11 @@ variable "alert_email" {
   description = "Email address for alert notification"
   type        = string
 }
+variable "key_vault_admin_object_id" {
+  description = "Object ID of admin user for Key Vault Administrator role"
+  type        = string
+}
+variable "github_actions_object_id" {
+  description = "Object ID of GitHub Actions Service Principal"
+  type        = string
+}
