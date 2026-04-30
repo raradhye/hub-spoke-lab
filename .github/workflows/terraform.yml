@@ -43,6 +43,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # install correct terraform version
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.4
+
+      # connect to remote state
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="key=hub-spoke-dev.tfstate"
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v3
         with:
