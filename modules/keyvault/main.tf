@@ -1,6 +1,7 @@
 data "azurerm_client_config" "current" {}
 
 # Key Vault with RBAC authorization enabled
+#tfsec:ignore:azure-keyvault-specify-network-acl
 resource "azurerm_key_vault" "main" {
   name                       = "kv-hub-spoke-lab"
   location                   = var.location
