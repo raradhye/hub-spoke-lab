@@ -29,10 +29,41 @@ jobs:
         run: |
           wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O tfsec
           chmod +x tfsec
-          sudo mv tfsec /usr/local/bin
+          sudo mv tfsec /usr/local/bin/
 
       - name: Run tfsec
         run: tfsec . --minimum-severity HIGH
+
+  infracost:
+    name: Infracost Cost Estimate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' # only run on PR
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate Infracost Estimate
+        run: |
+          infracost breakdown \
+            --path . \
+            --terraform-var "location=westus" \
+            --format json \
+            --out-file infracost-base.json
+
+      - name: Post Infracost comment to PR
+        run: |
+          infracost comment github \
+            --path infracost-base.json \
+            --repo ${{ github.repository }} \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+            --pull-request ${{ github.event.pull_request.number }} \
+            --behavior update
 
   terraform:
     name: Terraform Plan / Apply
