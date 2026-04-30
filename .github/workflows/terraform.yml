@@ -17,9 +17,23 @@ env:
   ARM_USE_OIDC: "true"
 
 jobs:
+  security-scan:
+    name: tfsec Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: false # fail the job if any critical or high found
+
   terraform:
     name: Terraform Plan / Apply
     runs-on: ubuntu-latest
+    needs: security-scan # terraform job only runs if security-scan passes
 
     steps:
       - name: Checkout code
