@@ -25,10 +25,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install tfsec
+        run: |
+          wget -q https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 -O tfsec
+          chmod +x tfsec
+          sudo mv tfsec /usr/local/bin
+
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          soft_fail: false # fail the job if any critical or high found
+        run: tfsec . --minimum-severity HIGH
 
   terraform:
     name: Terraform Plan / Apply
