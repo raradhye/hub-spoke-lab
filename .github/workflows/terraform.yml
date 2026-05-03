@@ -43,18 +43,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # install correct terraform version
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.11.4
-
-      # connect to remote state
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="key=hub-spoke-dev.tfstate"
-
       - name: Setup Infracost
         uses: infracost/actions/setup@v3
         with:
@@ -65,6 +53,12 @@ jobs:
           infracost breakdown \
             --path . \
             --terraform-var "location=westus" \
+            --terraform-var "environment_name=dev" \
+            --terraform-var "spoke_vnet_address=10.2.0.0/16" \
+            --terraform-var "spoke_vnet_subnet=10.2.1.0/24" \
+            --terraform-var "alert_email=placeholder@example.com" \
+            --terraform-var "key_vault_admin_object_id=00000000-0000-0000-0000-000000000000" \
+            --terraform-var "github_actions_object_id=00000000-0000-0000-0000-000000000000" \
             --format json \
             --out-file infracost-base.json
 
