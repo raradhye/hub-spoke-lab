@@ -53,18 +53,9 @@ jobs:
           infracost breakdown \
             --path . \
             --terraform-var "location=westus" \
-            --terraform-var "environment_name=dev" \
-            --terraform-var "spoke_vnet_address=10.2.0.0/16" \
-            --terraform-var "spoke_vnet_subnet=10.2.1.0/24" \
-            --terraform-var "alert_email=placeholder@example.com" \
-            --terraform-var "key_vault_admin_object_id=00000000-0000-0000-0000-000000000000" \
-            --terraform-var "github_actions_object_id=00000000-0000-0000-0000-000000000000" \
             --format json \
             --out-file infracost-base.json
             
-      - name: Debug Infracost output
-        run: cat infracost-base.json
-
       - name: Post Infracost comment to PR
         run: |
           infracost comment github \
@@ -72,7 +63,7 @@ jobs:
             --repo ${{ github.repository }} \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --pull-request ${{ github.event.pull_request.number }} \
-            --behavior update
+            --behavior hide-and-new
 
   terraform:
     name: Terraform Plan / Apply
