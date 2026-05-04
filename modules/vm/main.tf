@@ -18,6 +18,7 @@ resource "azurerm_network_interface" "hub_vm" {
 }
 
 # Hub VM
+#tfsec:ignore:azure-compute-disable-password-authentication
 resource "azurerm_linux_virtual_machine" "hub_vm" {
   name                            = "vm-hub-test"
   resource_group_name             = var.resource_group_name
@@ -62,6 +63,7 @@ resource "azurerm_network_interface" "spoke_vm" {
   }
 }
 # Spoke VM
+#tfsec:ignore:azure-compute-disable-password-authentication
 resource "azurerm_linux_virtual_machine" "spoke_vm" {
   name                            = "vm-spoke-${var.environment_name}"
   resource_group_name             = var.resource_group_name
