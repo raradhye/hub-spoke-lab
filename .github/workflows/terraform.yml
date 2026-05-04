@@ -40,8 +40,10 @@ jobs:
     if: github.event_name == 'pull_request' # only run on PR
 
     steps:
-      - name: Checkout code
+      - name: Checkout main branch for baseline
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -58,7 +60,7 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Generate Infracost Estimate
+      - name: Generate baseline from main
         run: |
           infracost breakdown \
             --path . \
@@ -66,13 +68,30 @@ jobs:
             --format json \
             --out-file infracost-base.json
 
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="key=hub-spoke-dev.tfstate"
+
+      - name: Generate diff against baseline
+        run: |
+          infracost diff \
+            --path . \
+            --terraform-var "location=westus" \
+            --format json \
+            --compare-to /tmp/infracost-base.json \
+            --out-file /tmp/infracost-diff.json                    
+
       - name: Debug Infracost output
         run: cat infracost-base.json
 
       - name: Post Infracost comment to PR
         run: |
           infracost comment github \
-            --path infracost-base.json \
+            --path infracost-diff.json \
             --repo ${{ github.repository }} \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --pull-request ${{ github.event.pull_request.number }} \
