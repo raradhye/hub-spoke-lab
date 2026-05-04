@@ -23,7 +23,7 @@ resource "azurerm_linux_virtual_machine" "hub_vm" {
   name                            = "vm-hub-test"
   resource_group_name             = var.resource_group_name
   location                        = var.location
-  size                            = "Standard_B2s"
+  size                            = "Standard_B1s"
   admin_username                  = var.admin_username
   admin_password                  = data.azurerm_key_vault_secret.admin_password.value
   disable_password_authentication = false
