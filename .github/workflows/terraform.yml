@@ -95,7 +95,7 @@ jobs:
             --repo ${{ github.repository }} \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --pull-request ${{ github.event.pull_request.number }} \
-            --behavior update
+            --behavior update || true
 
   terraform:
     name: Terraform Plan / Apply
