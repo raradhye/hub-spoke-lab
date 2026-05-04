@@ -50,7 +50,7 @@ jobs:
         with:
           terraform_version: 1.11.4
 
-      - name: Terraform Init
+      - name: Terraform Init for baseline
         run: |
           terraform init \
             -backend-config="key=hub-spoke-dev.tfstate"
@@ -71,7 +71,7 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
-      - name: Terraform Init
+      - name: Terraform Init for PR branch
         run: |
           terraform init \
             -backend-config="key=hub-spoke-dev.tfstate"
@@ -83,10 +83,7 @@ jobs:
             --terraform-var "location=westus" \
             --format json \
             --compare-to $HOME/infracost-base.json \
-            --out-file $HOME/infracost-diff.json                    
-
-      - name: Debug Infracost output
-        run: cat $HOME/infracost-diff.json
+            --out-file $HOME/infracost-diff.json 
 
       - name: Post Infracost comment to PR
         run: |
@@ -95,7 +92,7 @@ jobs:
             --repo ${{ github.repository }} \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --pull-request ${{ github.event.pull_request.number }} \
-            --behavior update || true
+            --behavior update
 
   terraform:
     name: Terraform Plan / Apply
