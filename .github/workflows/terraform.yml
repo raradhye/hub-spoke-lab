@@ -59,13 +59,16 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost Estimate
-        run: |+
+        run: |
           infracost breakdown \
             --path . \
             --terraform-var "location=westus" \
             --format json \
             --out-file infracost-base.json
-            
+
+      - name: Debug Infracost output
+        run: cat infracost-base.json
+
       - name: Post Infracost comment to PR
         run: |
           infracost comment github \
